@@ -1,0 +1,29 @@
+﻿<Window x:Class="CyberBotApp.MainWindow"
+          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CyberBot" Height="650" Width="950" Background="#101820">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!-- TITLE -->
+        <TextBlock Text="CYBERBOT" FontSize="34" FontWeight="Bold" Foreground="Cyan" HorizontalAlignment="Center" Margin="0,10"/>
+        <!-- USERNAME -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,15">
+            <TextBlock Text="Username:" Foreground="White" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox x:Name="UsernameBox" Width="220" Height="30" FontSize="16" Text="User"/>
+        </StackPanel>
+        <!-- CHAT AREA -->
+        <Border Grid.Row="2" Background="#1B1B1B" CornerRadius="10" Padding="10" Margin="0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBox x:Name="ChatBox" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#1B1B1B" Foreground="White" FontSize="16" BorderThickness="0"/>
+            </ScrollViewer>
+        </Border>
+        <!-- INPUT -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,15">
+            <TextBox x:Name="UserInputBox" Width="720" Height="40" FontSize="16" Margin="0,0,10,0"/>
+            <Button Content="Send" Width="150" Height="40" FontSize="16" Background="Cyan" Foreground="Black" FontWeight="Bold" Click="SendButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
