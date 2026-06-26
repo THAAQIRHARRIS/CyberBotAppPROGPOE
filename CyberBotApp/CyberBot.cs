@@ -6,300 +6,254 @@ namespace CyberBotApp
 {
     public class CyberBot
     {
+        // ================= CHAT DATA =================
         private Dictionary<string, List<string>> responses;
         private Random random = new Random();
 
-        private string lastTopic = "";
+        // ================= MEMORY =================
         private string rememberedTopic = "";
 
-        // PART 3
+        // ================= TASKS =================
+        private List<CyberTask> tasks = new List<CyberTask>();
+
+        // ================= ACTIVITY LOG =================
         private List<string> activityLog = new List<string>();
-        private List<string> tasks = new List<string>();
 
         public CyberBot()
         {
             InitializeResponses();
         }
 
+        // ================= RESPONSES =================
         private void InitializeResponses()
         {
             responses = new Dictionary<string, List<string>>()
             {
-                {
-                    "password",
-                    new List<string>()
+                { "password", new List<string>
                     {
-                        "Use strong passwords with at least 12 characters.",
-                        "Avoid using birthdays or personal names in passwords.",
-                        "A password manager can help keep your passwords secure."
+                        "Use strong passwords with 12+ characters.",
+                        "Avoid personal information in passwords.",
+                        "Use a password manager."
                     }
                 },
 
-                {
-                    "phishing",
-                    new List<string>()
+                { "phishing", new List<string>
                     {
-                        "Never click suspicious email links.",
-                        "Scammers often pretend to be trusted organisations.",
-                        "Always verify email senders before opening attachments."
+                        "Never click suspicious links.",
+                        "Check sender emails carefully.",
+                        "Report phishing attempts."
                     }
                 },
 
-                {
-                    "privacy",
-                    new List<string>()
+                { "privacy", new List<string>
                     {
-                        "Review your social media privacy settings regularly.",
-                        "Avoid sharing sensitive information publicly online.",
-                        "Enable two-factor authentication for better privacy."
+                        "Enable 2FA for better protection.",
+                        "Review privacy settings regularly.",
+                        "Avoid oversharing online."
                     }
                 },
 
-                {
-                    "scam",
-                    new List<string>()
+                { "scam", new List<string>
                     {
-                        "Be cautious of offers that sound too good to be true.",
-                        "Scammers often create urgency to pressure victims.",
-                        "Never send money to unknown online contacts."
+                        "Be careful of urgent messages.",
+                        "Never send money to unknown sources.",
+                        "Verify before trusting requests."
                     }
                 },
 
-                {
-                    "safe browsing",
-                    new List<string>()
+                { "safe browsing", new List<string>
                     {
-                        "Always check for HTTPS websites before entering personal information.",
-                        "Avoid downloading files from untrusted websites.",
-                        "Keep your browser updated for better security."
+                        "Use HTTPS websites only.",
+                        "Avoid unknown downloads.",
+                        "Keep browser updated."
                     }
                 }
             };
         }
 
-        // ACTIVITY LOG
+        // ================= ACTIVITY LOG =================
         private void AddLog(string action)
         {
-            activityLog.Add($"{DateTime.Now:g} - {action}");
+            activityLog.Add($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {action}");
 
             if (activityLog.Count > 10)
-            {
                 activityLog.RemoveAt(0);
-            }
         }
 
         public List<string> GetActivityLog()
         {
-            return activityLog;
+            return activityLog.ToList();
         }
 
-        // TASKS
-        public void AddTask(string task)
+        // ================= TASK SYSTEM =================
+        public void AddTask(CyberTask task)
         {
             tasks.Add(task);
-            AddLog($"Task added: {task}");
+            AddLog($"Task added: {task.Title}");
         }
 
-        public List<string> GetTasks()
+        public List<CyberTask> GetTasks()
         {
             return tasks;
         }
 
+        public void DeleteTask(string title)
+        {
+            var task = tasks.FirstOrDefault(t => t.Title == title);
+
+            if (task != null)
+            {
+                tasks.Remove(task);
+                AddLog($"Task deleted: {title}");
+            }
+        }
+
+        public void CompleteTask(string title)
+        {
+            var task = tasks.FirstOrDefault(t => t.Title == title);
+
+            if (task != null)
+            {
+                task.IsCompleted = true;
+                AddLog($"Task completed: {title}");
+            }
+        }
+
+        // ================= NLP INTENT DETECTION =================
+        private string DetectIntent(string input)
+        {
+            input = input.ToLower();
+
+            if (input.Contains("add task") || input.Contains("create task"))
+                return "ADD_TASK";
+
+            if (input.Contains("delete task") || input.Contains("remove task"))
+                return "DELETE_TASK";
+
+            if (input.Contains("complete task") || input.Contains("finish task"))
+                return "COMPLETE_TASK";
+
+            if (input.Contains("quiz") || input.Contains("start quiz"))
+                return "QUIZ";
+
+            if (input.Contains("log") || input.Contains("activity"))
+                return "LOG";
+
+            if (input.Contains("remind"))
+                return "REMINDER";
+
+            if (input.Contains("password") ||
+                input.Contains("phishing") ||
+                input.Contains("scam") ||
+                input.Contains("privacy"))
+                return "CYBER_TOPIC";
+
+            return "UNKNOWN";
+        }
+
+        // ================= MAIN CHAT FUNCTION =================
         public string GetResponse(string input, string userName)
         {
-            string userInput = input.ToLower().Trim();
+            string intent = DetectIntent(input);
+            AddLog($"Intent detected: {intent}");
 
-            // Greeting
-            if (userInput.Contains("hello") ||
-                userInput.Contains("hey") ||
-                userInput.Contains("hi"))
+            switch (intent)
             {
-                return $"Hello {userName}. How can I help you today?";
+                case "ADD_TASK":
+                    string taskText = input
+                        .Replace("add task", "", StringComparison.OrdinalIgnoreCase)
+                        .Replace("create task", "", StringComparison.OrdinalIgnoreCase)
+                        .Trim();
+
+                    if (!string.IsNullOrEmpty(taskText))
+                    {
+                        CyberTask task = new CyberTask
+                        {
+                            Id = new Random().Next(1000, 9999),
+                            Title = taskText,
+                            Description = "Added via NLP",
+                            IsCompleted = false
+                        };
+
+                        AddTask(task);
+
+                        return $"Task added: {task.Title}";
+                    }
+
+                    return "Please specify the task.";
+
+                case "DELETE_TASK":
+                    AddLog("Delete task requested");
+                    return "Go to Task tab to delete a task.";
+
+                case "COMPLETE_TASK":
+                    AddLog("Complete task requested");
+                    return "Go to Task tab to complete a task.";
+
+                case "QUIZ":
+                    AddLog("Quiz started");
+                    return "Go to Quiz tab to start the game.";
+
+                case "LOG":
+                    AddLog("Activity log requested");
+                    return string.Join("\n", activityLog);
+
+                case "REMINDER":
+                    AddLog("Reminder requested");
+                    return "Reminder noted (database version will store dates).";
+
+                case "CYBER_TOPIC":
+                    return HandleCyberTopics(input);
+
+                default:
+                    AddLog("Unknown input");
+                    return "Try asking about passwords, phishing, scams, or tasks.";
+            }
+        }
+
+        // ================= CYBER TOPIC HANDLER =================
+        private string HandleCyberTopics(string input)
+        {
+            input = input.ToLower();
+
+            if (input.Contains("password"))
+            {
+                AddLog("Discussed password safety");
+                return GetRandom("password");
             }
 
-            // How are you
-            if (userInput.Contains("how are you"))
+            if (input.Contains("phishing"))
             {
-                return "I am functioning perfectly and ready to help.";
+                AddLog("Discussed phishing");
+                return GetRandom("phishing");
             }
 
-            // Purpose
-            if (userInput.Contains("purpose") ||
-                userInput.Contains("what do you do"))
+            if (input.Contains("scam"))
             {
-                return "My purpose is to help users stay safe online and learn cybersecurity.";
+                AddLog("Discussed scams");
+                return GetRandom("scam");
             }
 
-            // -----------------------
-            // NLP TASK DETECTION
-            // -----------------------
-
-            if (userInput.Contains("add task") ||
-                userInput.Contains("new task") ||
-                userInput.Contains("create task"))
+            if (input.Contains("privacy"))
             {
-                string task = input;
-
-                task = task.Replace("add task", "", StringComparison.OrdinalIgnoreCase);
-                task = task.Replace("new task", "", StringComparison.OrdinalIgnoreCase);
-                task = task.Replace("create task", "", StringComparison.OrdinalIgnoreCase);
-
-                task = task.Trim();
-
-                if (task != "")
-                {
-                    AddTask(task);
-
-                    return $"Task added successfully:\n{task}";
-                }
-
-                return "Please tell me what task you'd like to add.";
+                AddLog("Discussed privacy");
+                return GetRandom("privacy");
             }
 
-            // Reminder detection
-            if (userInput.Contains("remind me"))
+            if (input.Contains("safe browsing"))
             {
-                AddLog("Reminder created");
-
-                return "Reminder noted! (Reminder dates will be added in the database version.)";
+                AddLog("Discussed safe browsing");
+                return GetRandom("safe browsing");
             }
 
-            // Show tasks
-            if (userInput.Contains("show tasks") ||
-                userInput.Contains("my tasks"))
-            {
-                if (tasks.Count == 0)
-                {
-                    return "You currently have no tasks.";
-                }
+            return "Ask about passwords, phishing, scams, or privacy.";
+        }
 
-                return "Your Tasks:\n\n• " +
-                       string.Join("\n• ", tasks);
-            }
-
-            // Quiz
-            if (userInput.Contains("quiz") ||
-                userInput.Contains("start quiz"))
-            {
-                AddLog("Quiz started");
-
-                return "Starting Cybersecurity Quiz...";
-            }
-
-            // Activity Log
-            if (userInput.Contains("activity") ||
-                userInput.Contains("what have you done") ||
-                userInput.Contains("show log"))
-            {
-                if (activityLog.Count == 0)
-                {
-                    return "No recent activity.";
-                }
-
-                return "Recent Activity\n\n" +
-                       string.Join("\n", activityLog);
-            }
-
-            // Sentiment Detection
-            if (userInput.Contains("worried") ||
-                userInput.Contains("scared") ||
-                userInput.Contains("frustrated"))
-            {
-                if (userInput.Contains("scam"))
-                {
-                    lastTopic = "scam";
-
-                    AddLog("Discussed scam safety");
-
-                    return "I understand your concern. Never share banking details with unverified people online.";
-                }
-
-                return "I understand your concern. Cybersecurity can feel overwhelming sometimes.";
-            }
-
-            // Curious
-            if (userInput.Contains("curious"))
-            {
-                return "Curiosity is excellent in cybersecurity. Learning helps you stay protected.";
-            }
-
-            // Memory
-            if (userInput.Contains("interested in"))
-            {
-                string[] parts = userInput.Split(
-                    new string[] { "interested in" },
-                    StringSplitOptions.None);
-
-                if (parts.Length > 1)
-                {
-                    rememberedTopic = parts[1].Trim();
-
-                    AddLog($"Remembered interest: {rememberedTopic}");
-
-                    return $"Great! I'll remember that you're interested in {rememberedTopic}.";
-                }
-            }
-
-            // Recall
-            if (!string.IsNullOrEmpty(rememberedTopic) &&
-                userInput.Contains("recommend"))
-            {
-                return $"Since you're interested in {rememberedTopic}, I recommend researching best practices related to it.";
-            }
-
-            // More info
-            if (userInput.Contains("tell me more") ||
-                userInput.Contains("another tip") ||
-                userInput.Contains("more"))
-            {
-                if (!string.IsNullOrEmpty(lastTopic) &&
-                    responses.ContainsKey(lastTopic))
-                {
-                    List<string> responseList = responses[lastTopic];
-
-                    return responseList[random.Next(responseList.Count)];
-                }
-
-                return "Please specify which cybersecurity topic you'd like more information about.";
-            }
-
-            // Cybersecurity keyword detection
-            foreach (var keyword in responses.Keys)
-            {
-                if (userInput.Contains(keyword))
-                {
-                    lastTopic = keyword;
-
-                    AddLog($"Discussed {keyword}");
-
-                    List<string> responseList = responses[keyword];
-
-                    return responseList[random.Next(responseList.Count)];
-                }
-            }
-
-            // Help
-            if (userInput.Contains("help") ||
-                userInput.Contains("ask"))
-            {
-                return
-@"You can ask me about:
-
-• Passwords
-• Phishing
-• Privacy
-• Scams
-• Safe Browsing
-
-You can also say:
-
-• Add Task Review passwords
-• Show Tasks
-• Start Quiz
-• Show Activity Log";
-            }
-
-            return "I'm not sure I understand. Can you try rephrasing?";
+        // ================= RANDOM RESPONSE =================
+        private string GetRandom(string key)
+        {
+            var list = responses[key];
+            return list[random.Next(list.Count)];
         }
     }
 }
